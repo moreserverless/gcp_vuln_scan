@@ -10,21 +10,41 @@ from grafeas.grafeas_v1 import Severity
 import functions_framework
 
 # Set the project which contains the artifact repository to scan
+#
+# Possible improvement: What ever invokes this cloud run function
+# could pass in the project id which would eliminate the need to
+# hardcode it.
 project_id = f'projects/<PROJECT_ID>'
 
-# this will hold all vulnerabilites as a list
-all_vuln = []
+
+def get_vulnerabilities():
+    """
+    For every image in a project's artifact repository obtain the vulnerabilities.  
+    If the vulnerability's SEVERITY is MEDIUM, HIGH or CRITICAL add it to the 
+    list to be reported.
+
+    INPUTS:
+    NONE
+
+    RETURN:
+    all_vuln : a list of all MEDIUM, HIGH and CRITICAL vulnerabilites for every
+                image in a project's artifact repository
+    """
 
 
-grafeas_client = client.get_grafeas_client()
-filter_str = 'kind="VULNERABILITY"'
-vulnerabilities = grafeas_client.list_occurrences(parent=project_id, filter=filter_str)
+    all_vuln = []
 
-for v in vulnerabilities:
-    if v.vulnerability.effective_severity == Severity.MEDIUM 
-        or v.vulnerability.effective_severity == Severity.HIGH 
-        or v.vulnerability.effective_severity == Severity.CRITICAL :
-        all_vuln.append(v)
+    grafeas_client = client.get_grafeas_client()
+    filter_str = 'kind="VULNERABILITY"'
+    vulnerabilities = grafeas_client.list_occurrences(parent=project_id, filter=filter_str)
+
+    for v in vulnerabilities:
+        if v.vulnerability.effective_severity == Severity.MEDIUM 
+            or v.vulnerability.effective_severity == Severity.HIGH 
+            or v.vulnerability.effective_severity == Severity.CRITICAL :
+            all_vuln.append(v)
+
+    return all_vuln
 
 def parse_vulnerabilities(vulns):
     """
@@ -61,6 +81,7 @@ def parse_vulnerabilities(vulns):
         resource_uri_part_2 = resource_uri_part_1[0].split("/")
         image_name = resource_uri_part_2[len(resource_uri_part_2) - 1]
 
+        # See README.md for an example of the dictionary format
         if image_name not in vuln_dict[project_name]:
             vuln_dict[project_name][image_name] = {
                 "med": [],
