@@ -9,13 +9,6 @@ from grafeas.grafeas_v1 import Severity
 
 import functions_framework
 
-# Set the project which contains the artifact repository to scan
-#
-# Possible improvement: What ever invokes this cloud run function
-# could pass in the project id which would eliminate the need to
-# hardcode it.
-project_id = f'projects/<PROJECT_ID>'
-
 
 def get_vulnerabilities():
     """
@@ -30,7 +23,12 @@ def get_vulnerabilities():
     all_vuln : a list of all MEDIUM, HIGH and CRITICAL vulnerabilites for every
                 image in a project's artifact repository
     """
-
+    # Set the project which contains the artifact repository to scan
+    #
+    # Possible improvement: What ever invokes this cloud run function
+    # could pass in the project id which would eliminate the need to
+    # hardcode it.
+    project_id = f'projects/<PROJECT_ID>'
 
     all_vuln = []
 
@@ -75,7 +73,7 @@ def parse_vulnerabilities(vulns):
 
         # URI is returned in the following format:
         # https://REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/IMAGE_NAME@sha256:some_sha_hash_value"
-        # split it on the '@' symbol and then on the forward slash symbol
+        # split it on the '@' symbol and then on the forward slash, '/', symbol
         # The name of the image will be the last element after splitting on the forward slash
         resource_uri_part_1 = v.resource_uri.split("@")
         resource_uri_part_2 = resource_uri_part_1[0].split("/")
