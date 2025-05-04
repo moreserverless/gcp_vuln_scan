@@ -3,6 +3,7 @@ import json
 import functions_framework
 from typing import List
 
+from google.cloud import pubsub_v1
 from google.oauth2.service_account import Credentials
 from google.cloud.devtools import containeranalysis_v1
 
@@ -125,8 +126,26 @@ def parse_vulnerabilities(vulns):
 
     return vuln_dict
 
+def publish_scan_results(scan_results_dict):
+
+    scan_results_str = json.dumps(scan_results_dict).encode("utf-8")
+
+    project_id = os.environ.get("PROJECT_ID")
+    topic_id = os.environ.get("PUBSUB_TOPIC_ID")
+
+    publisher = pubsub_v1.PublisherClient()
+    # The `topic_path` method creates a fully qualified identifier
+    # in the form `projects/{project_id}/topics/{topic_id}`
+    topic_path = publisher.topic_path(project_id, topic_id)
+    try:
+        future = publisher.publish(topic_path, data=scan_results_str)
+        return '200 - Ok'
+    except Exception as e:
+        print(f"Error publishing message: {e}")
+        return '400 - Failed to publish message'
+
 @functions_framework.http
 def scan(request):
     v = get_vulnerabilities()
     vuln_dict = parse_vulnerabilities(v)
-    return json.dumps(vuln_dict)
+    return publish_scan_results(vuln_dict)

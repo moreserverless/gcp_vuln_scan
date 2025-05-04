@@ -1,7 +1,8 @@
 # gcp_vuln_scan
 Scans Docker images in a GCP project's artifact registry
 
-You must have a project
+**NOTE:** You must have a GCP project that contains an artifact repository with at least one
+Docker image.
 
 
 ## GCP API Services
@@ -29,11 +30,60 @@ gcloud services enable artifactregistry.googleapis.com \
     - `. venv/bin/activate`
 3. Install packages
     - `pip install -r requirements.txt`
-4. Run locally as a Cloud Run function
+4. Install and run PubSub emulator:
+    - ref: [Testing apps locally with an emulator](https://cloud.google.com/pubsub/docs/emulator)
+    - Set environment variables to use emulator instead of real PubSub:
+      - `$(gcloud beta emulators pubsub env-init)`
+      - `export PUBSUB_EMULATOR_HOST=[::1]:8432`
+      - `export PUBSUB_PROJECT_ID=my-project-id`
+5. Export the following environment variables:
+      - `export PROJECT_ID=my-project-id`
+      - `export PUBSUB_TOPIC_ID=topic_id`
+6. Run locally as a Cloud Run function
     - `functions-framework --target scan --debug`
     - Note the port number returned
-5. Trigger the function
+7. Trigger the function
     - `curl localhost:<PORT_NUMBER>`
+    - See **Testing Pub/Sub Locally** section below
+
+## Testing Pub/Sub Locally
+
+[This page](https://cloud.google.com/pubsub/docs/emulator#env) describes the steps to test Pub/Sub locally using
+the Pub/Sub emulator.  However, it took me several attempts to get everything working correctly.  The following
+are the steps I took to test that `main.py/publish_scan_results(scan_results_dict)` was working correctly.
+
+Four (4) terminal tabs will be needed for testing
+
+Export the following environment variables in all 4 terminals:    
+- `export PROJECT_ID=my-project-id`
+- `export PUBSUB_PROJECT_ID=my-project-id` (yes, it is identical so I can copy and paste commands from [here](https://cloud.google.com/pubsub/docs/emulator#env))
+- `export TOPIC_ID=my-topic-id`
+- `export SUBSCRIPTION_ID=my-sub-id`
+- Run the command: `gcloud beta emulators pubsub env
+
+Terminal 1 (run the pubsub emulator):
+  - Run the command: `gcloud beta emulators pubsub env-init`
+    - copy the output `export PUBSUB_EMULATOR_HOST=localhost:PORT` to clipboard 
+  - run the command `gcloud beta emulators pubsub start --project=${PROJECT_ID}`
+  - the command should not return to CLI prompt nor throw any errors.  If errors are thrown, fix and redo the steps
+
+Terminal 2 (run functions-framework):
+- export the PUBSUB_EMULATOR_HOST from Terminal 1 above
+- execute `python ./pubsub_test/publisher.py $PUBSUB_PROJECT_ID create $TOPIC_ID`
+- execute `python ./pubsub_test/subscriber.py $PUBSUB_PROJECT_ID create $PUBSUB_TOPIC_ID $SUBSCRIPTION_ID`
+- run the command:  `functions-framework --target scan --debug`
+- the command should not return to CLI prompt nor throw any errors.  If errors are thrown, fix and redo the steps
+
+Terminal 3 (receive subscriptions):
+- export the PUBSUB_EMULATOR_HOST from Terminal 1 above
+- execute `python subscriber.py $PUBSUB_PROJECT_ID receive $SUBSCRIPTION_ID`
+- Response should be similar to `Listening for messages on projects/PUBSUB_PROJECT_ID/subscriptions/SUBSCRIPTION_ID`
+  and waiting to receive a message
+
+Terminal 4:
+- Execute `curl localhost:8080`
+  - The port number should match what the `functions-framework` is serving to
+- Go back to Terminal 3 and a message should have been received
   
 ## Deploy via `gcloud`
 ```bash
