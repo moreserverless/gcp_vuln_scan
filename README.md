@@ -1,6 +1,9 @@
 # gcp_vuln_scan
 Scans Docker images in a GCP project's artifact registry
 
+You must have a project
+
+
 ## GCP API Services
 Enable the following API services:
 
@@ -17,6 +20,7 @@ gcloud services enable artifactregistry.googleapis.com \
       logging.googleapis.com
 ```
 
+
 ## Run locally
 
 1. Create a virtual env
@@ -25,6 +29,11 @@ gcloud services enable artifactregistry.googleapis.com \
     - `. venv/bin/activate`
 3. Install packages
     - `pip install -r requirements.txt`
+4. Run locally as a Cloud Run function
+    - `functions-framework --target scan --debug`
+    - Note the port number returned
+5. Trigger the function
+    - `curl localhost:<PORT_NUMBER>`
   
 ## Deploy via `gcloud`
 ```bash
@@ -61,3 +70,6 @@ gcloud run deploy FUNCTION \
      'package_type': 'OS'}],
    'critical': []}}}
 ```
+
+## REFERENCES
+[1] [Schedule an event-driven Cloud Run function](https://cloud.google.com/scheduler/docs/tut-gcf-pub-sub)

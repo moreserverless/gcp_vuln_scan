@@ -1,4 +1,6 @@
+import os
 import json
+import functions_framework
 from typing import List
 
 from google.oauth2.service_account import Credentials
@@ -6,8 +8,6 @@ from google.cloud.devtools import containeranalysis_v1
 
 from grafeas.grafeas_v1 import types
 from grafeas.grafeas_v1 import Severity
-
-import functions_framework
 
 
 def get_vulnerabilities():
@@ -25,10 +25,9 @@ def get_vulnerabilities():
     """
     # Set the project which contains the artifact repository to scan
     #
-    # Possible improvement: What ever invokes this cloud run function
-    # could pass in the project id which would eliminate the need to
-    # hardcode it.
-    project_id = f'projects/<PROJECT_ID>'
+    # If running locally, execute `export PROJECT_ID=<PROJECT_ID>`
+    # Or, if running on GCP set an environment variable
+    project_id = 'projects/{}'.format(os.environ.get('PROJECT_ID'))
 
     all_vuln = []
 
@@ -125,3 +124,9 @@ def parse_vulnerabilities(vulns):
                 vuln_dict[project_name][image_name]["critical"].append(vuln_info)
 
     return vuln_dict
+
+@functions_framework.http
+def scan(request):
+    v = get_vulnerabilities()
+    vuln_dict = parse_vulnerabilities(v)
+    return json.dumps(vuln_dict)
