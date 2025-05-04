@@ -131,7 +131,7 @@ def publish_scan_results(scan_results_dict):
     scan_results_str = json.dumps(scan_results_dict).encode("utf-8")
 
     project_id = os.environ.get("PROJECT_ID")
-    topic_id = os.environ.get("PUBSUB_TOPIC_ID")
+    topic_id = os.environ.get("TOPIC_ID")
 
     publisher = pubsub_v1.PublisherClient()
     # The `topic_path` method creates a fully qualified identifier
