@@ -1,6 +1,8 @@
 # gcp_vuln_scan
 Scans Docker images in a GCP project's artifact registry
 
+![Vulnerability Scan Notification](./diagram/vulnerability_scan_notification.png)
+
 **NOTE:** You must have a GCP project that contains an artifact repository with at least one
 Docker image.
 
@@ -111,3 +113,5 @@ gcloud run deploy FUNCTION \
 
 ## REFERENCES
 [1] [Schedule an event-driven Cloud Run function](https://cloud.google.com/scheduler/docs/tut-gcf-pub-sub)
+
+[2] [Diagrams](https://diagrams.mingrammer.com/)
