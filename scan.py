@@ -32,14 +32,15 @@ def get_vulnerabilities():
 
     all_vuln = []
 
+    client = containeranalysis_v1.ContainerAnalysisClient()
     grafeas_client = client.get_grafeas_client()
     filter_str = 'kind="VULNERABILITY"'
     vulnerabilities = grafeas_client.list_occurrences(parent=project_id, filter=filter_str)
 
     for v in vulnerabilities:
-        if v.vulnerability.effective_severity == Severity.MEDIUM 
+        if (v.vulnerability.effective_severity == Severity.MEDIUM 
             or v.vulnerability.effective_severity == Severity.HIGH 
-            or v.vulnerability.effective_severity == Severity.CRITICAL :
+            or v.vulnerability.effective_severity == Severity.CRITICAL) :
             all_vuln.append(v)
 
     return all_vuln
