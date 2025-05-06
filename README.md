@@ -1,10 +1,14 @@
 # gcp_vuln_scan
-Scans Docker images in a GCP project's artifact registry
+Obtains vulnerabilities from image scans and publishes them to a notification service.
+
 
 ![Vulnerability Scan Notification](./diagram/vulnerability_scan_notification.png)
 
 **NOTE:** You must have a GCP project that contains an artifact repository with at least one
 Docker image.
+
+**NOTE:** This code does not initiate a scan for vulnerabilites but obtains the results from
+a scan that was already performed.
 
 
 ## GCP API Services

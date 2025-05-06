@@ -9,6 +9,6 @@ with Diagram("Vulnerability Scan Notification", show=False):
 
     with Cluster("GCP Project"):
 
-        schedule_scan = Scheduler("Cloud Scheduler") >> Functions("Image Vulnerabilities") 
+        schedule_scan = Scheduler("Cloud Scheduler") >> Functions("Read Vulnerabilities") 
         publish_results = schedule_scan >> PubSub("Pub/Sub")
-        email_results = publish_results >> Functions("Email results")
+        email_results = publish_results >> Functions("Notification Service")
